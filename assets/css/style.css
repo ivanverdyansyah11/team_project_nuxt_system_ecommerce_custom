@@ -129,6 +129,13 @@ form.form .input-image {
     border-radius: 9999px;
     aspect-ratio: 1/1;
     object-fit: cover;
+    border: 1px solid rgba(var(--dark-color), 0.12) !important;
+}
+
+.input-image.active {
+    background-color: rgba(var(--dark-color), 0.02);
+    border: 1px solid rgba(var(--dark-color), 0.12) !important;
+    padding: 6px;
 }
 
 form.form .input-image-full {
