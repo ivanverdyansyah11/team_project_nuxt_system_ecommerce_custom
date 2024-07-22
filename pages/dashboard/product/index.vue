@@ -102,7 +102,7 @@ onBeforeRouteUpdate((to, from, next) => {
                 <td>{{formatRupiah(product.price)}}</td>
                 <td>{{product.discount}}</td>
                 <td>{{product.weight}}</td>
-                <td>{{product.is_pre_order}}</td>
+                <td>{{product.is_pre_order ? 'Pre Order' : 'Not Pre Order'}}</td>
                 <td class="d-flex justify-content-end gap-1 table-mobile" style="width: 200px;">
                   <NuxtLink :to="{path: `/dashboard/product/${product.id}`}"
                             class="wrapper-icon icon-detail d-flex align-items-center justify-content-center">
