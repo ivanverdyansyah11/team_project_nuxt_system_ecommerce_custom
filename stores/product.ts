@@ -57,7 +57,7 @@ export const useProductStore = defineStore('product', {
                     headers: { 'Authorization': `Bearer ${token.value}` },
                     body: createData
                 });
-                this.status_code = response?.data ? 200 : null;
+                this.status_code = response?.meta.code;
                 this.totalPages = response?.meta?.total
             } catch (error) {
                 console.log(error?.message)
@@ -71,7 +71,33 @@ export const useProductStore = defineStore('product', {
                     headers: { 'Authorization': `Bearer ${token.value}` },
                     body: updateData
                 });
-                this.status_code = response?.data ? 200 : null;
+                this.status_code = response?.meta.code;
+            } catch (error) {
+                console.log(error?.message)
+            }
+        },
+        async saveImageProduct(formData: FormData) {
+            try {
+                const token = useCookie('auth-token')
+                const response = await $fetch(`${apiUrl}/products/image`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token.value}` },
+                    body: formData
+                });
+                this.status_code = response.meta.code;
+            } catch (error) {
+                console.log(error?.message)
+            }
+        },
+        async deleteImageProduct(productId: string) {
+            try {
+                const token = useCookie('auth-token')
+                const response = await $fetch(`${apiUrl}/products/image/delete`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token.value}` },
+                    body: productId
+                });
+                this.status_code = response.meta.code;
             } catch (error) {
                 console.log(error?.message)
             }
