@@ -37,15 +37,27 @@ const toggleActive = (event: Event) => {
           <NuxtLink to="/dashboard/customer" :class="{ active: $route.path.startsWith('/dashboard/customer') }">Customer</NuxtLink>
         </div>
       </button>
-      <button type="button" class="menu-link d-flex flex-column parent-menu" :class="{ active: $route.path.startsWith('/dashboard/product') || $route.path.startsWith('/dashboard/category') || $route.path.startsWith('/dashboard/sub-category') }" @click="toggleActive($event)">
+      <button type="button" class="menu-link d-flex flex-column parent-menu" :class="{ active: $route.path === '/dashboard/product' || $route.path.startsWith('/dashboard/product/') || $route.path.startsWith('/dashboard/category') || $route.path.startsWith('/dashboard/sub-category') }" @click="toggleActive($event)">
         <div class="wrapper d-flex align-items-center gap-2">
           <i class="fa-solid fa-database"></i>
           Master Data
         </div>
         <div class="child-menu flex-column gap-1">
-          <NuxtLink to="/dashboard/product" :class="{ active: $route.path.startsWith('/dashboard/product') }">Product</NuxtLink>
+          <NuxtLink to="/dashboard/product" :class="{ active: $route.path === '/dashboard/product' || $route.path.startsWith('/dashboard/product/') }">Product</NuxtLink>
           <NuxtLink to="/dashboard/category" :class="{ active: $route.path.startsWith('/dashboard/category') }">Category</NuxtLink>
           <NuxtLink to="/dashboard/sub-category" :class="{ active: $route.path.startsWith('/dashboard/sub-category') }">Sub Category</NuxtLink>
+        </div>
+      </button>
+      <button type="button" class="menu-link d-flex flex-column parent-menu" :class="{ active: $route.path.startsWith('/dashboard/product-in') || $route.path.startsWith('/dashboard/product-out') || $route.path.startsWith('/dashboard/product-broken') || $route.path.startsWith('/dashboard/product-return') }" @click="toggleActive($event)">
+        <div class="wrapper d-flex align-items-center gap-2">
+          <i class="fa-solid fa-database"></i>
+          Inventaris
+        </div>
+        <div class="child-menu flex-column gap-1">
+          <NuxtLink to="/dashboard/product-in" :class="{ active: $route.path.startsWith('/dashboard/product-in') }">Product In</NuxtLink>
+          <NuxtLink to="/dashboard/product-out" :class="{ active: $route.path.startsWith('/dashboard/product-out') }">Product Out</NuxtLink>
+          <NuxtLink to="/dashboard/product-broken" :class="{ active: $route.path.startsWith('/dashboard/product-broken') }">Product Broken</NuxtLink>
+          <NuxtLink to="/dashboard/product-return" :class="{ active: $route.path.startsWith('/dashboard/product-return') }">Product Return</NuxtLink>
         </div>
       </button>
       <form @submit.prevent="logout">
