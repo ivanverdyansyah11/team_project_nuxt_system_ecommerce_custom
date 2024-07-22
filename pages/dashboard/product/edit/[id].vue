@@ -1,224 +1,214 @@
 <script setup lang="ts">
-// import { useServiceStore } from "~/stores/service";
-// import { useCategoryStore } from "~/stores/category";
-// import { useRouteStore } from "~/stores/route";
-// import { useFacilityStore } from "~/stores/facility";
-// import { useInstructorStore } from "~/stores/instructor";
-// import { useLuggageStore } from "~/stores/luggage";
-// import { useRoute } from '#app';
-// import { ref, onMounted } from 'vue';
-// import { useField, useForm } from 'vee-validate'
-// import * as yup from 'yup'
-// import Cookies from "js-cookie";
-// import {navigateTo} from "nuxt/app";
-//
-// definePageMeta({
-//   title: 'Edit Service Page',
-//   layout: 'dashboard'
-// })
-//
-// const serviceStore = useServiceStore();
-// const categoryStore = useCategoryStore();
-// const routeStore = useRouteStore();
-// const facilityStore = useFacilityStore();
-// const instructorStore = useInstructorStore();
-// const luggageStore = useLuggageStore();
-// const route = useRoute();
-// const updateDataImage = ref('https://placehold.co/600x400?text=Image+Not+Found');
-// const file = ref(null);
-//
-// const schema = yup.object({
-//   name: yup.string().required('Name is required'),
-//   price: yup.number().required('Price is required'),
-//   entertainment_category_id: yup.string().required('Entertainment Category is required'),
-//   routes: yup.array().min(1, 'At least one route is required'),
-//   facilities: yup.array().min(1, 'At least one facility is required'),
-//   instructors: yup.array().min(1, 'At least one instructor is required'),
-//   mandatory_luggages: yup.array().min(1, 'At least one mandatory luggage is required'),
-//   image: yup.mixed().required('Image is required'),
-// });
-//
-// const { handleSubmit, resetForm, setValues } = useForm({
-//   validationSchema: schema,
-// });
-//
-// const { value: name, errorMessage: nameError } = useField('name');
-// const { value: price, errorMessage: priceError } = useField('price');
-// const { value: entertainment_category_id, errorMessage: entertainmentCategoryIdError } = useField('entertainment_category_id');
-// const { value: image, errorMessage: imageError } = useField('image');
-// const routes = ref([]);
-// const routesError = ref('');
-// const facilities = ref([]);
-// const facilitiesError = ref('');
-// const instructors = ref([]);
-// const instructorsError = ref('');
-// const mandatory_luggages = ref([]);
-// const mandatoryLuggagesError = ref('');
-//
-// const loadService = async() => {
-//   await serviceStore.getServiceById(route.params.id);
-//   updateDataImage.value = serviceStore?.service?.image_path != null ? `http://localhost:8000/${serviceStore.service.image_path}` : 'https://placehold.co/600x400?text=Image+Not+Found';
-//   setValues({
-//     name: serviceStore.service.name,
-//     price: serviceStore.service.price,
-//     entertainment_category_id: serviceStore.service.entertainment_category.id,
-//     image: updateDataImage.value,
-//   })
-//   routes.value = serviceStore.service?.routes.map(r => r.route.id);
-//   facilities.value = serviceStore.service?.facilities?.map(f => f.facility.id);
-//   instructors.value = serviceStore.service?.instructors?.map(i => i.instructor.id);
-//   mandatory_luggages.value = serviceStore.service?.mandatory_luggages?.map(m => m.mandatory_luggage.id);
-// }
-//
-// const previewImage = (e: any) => {
-//   if (!e.target.files.length) return;
-//   file.value = e.target.files[0];
-//   const reader = new FileReader();
-//   reader.onload = () => {
-//     if (typeof reader.result === "string") {
-//       updateDataImage.value = reader.result;
-//     }
-//     e.target.value = "";
-//   };
-//   reader.readAsDataURL(file.value);
-// }
-//
-// const updateService = handleSubmit(async (values) => {
-//   values.routes = routes.value.map(route_id => ({ route_id }));
-//   values.facilities = facilities.value.map(facility_id => ({ facility_id }));
-//   values.instructors = instructors.value.map(instructor_id => ({ instructor_id }));
-//   values.mandatory_luggages = mandatory_luggages.value.map(mandatory_luggage_id => ({ mandatory_luggage_id }));
-//
-//   try {
-//     await serviceStore.updateService(values, route.params.id);
-//     if (file.value) {
-//       const formData = new FormData();
-//       formData.append('image', file.value);
-//       await serviceStore.saveImageService(formData, serviceStore.service.id);
-//     }
-//     Cookies.set('alert-message', 'Successfully update service');
-//     Cookies.set('alert-page', 'Service');
-//     navigateTo('/dashboard/entertainment-service');
-//   } catch (error) {
-//     console.error('Error updating service:', error);
-//   }
-// });
-//
-//
-// onMounted(async () => {
-//   await categoryStore.getAllCategoryWithoutPaginate();
-//   await routeStore.getAllRouteWithoutPaginate();
-//   await facilityStore.getAllFacilityWithoutPaginate();
-//   await instructorStore.getAllInstructorWithoutPaginate();
-//   await luggageStore.getAllLuggageWithoutPaginate();
-//
-//   await loadService()
-// });
+import { useProductStore } from "~/stores/product";
+import { useSubCategoryStore } from "~/stores/subCategory";
+import { useRoute } from '#app';
+import { ref, onMounted, computed, watch } from 'vue';
+import { useField, useForm } from 'vee-validate'
+import * as yup from 'yup'
+import Cookies from "js-cookie";
+import {navigateTo} from "nuxt/app";
+
+definePageMeta({
+  title: 'Edit Product Page',
+  layout: 'dashboard'
+})
+
+const productStore = useProductStore();
+const subCategoryStore = useSubCategoryStore();
+const route = useRoute();
+
+const schema = yup.object({
+  name: yup.string().required('Name is required'),
+  price: yup.number().required('Price is required'),
+  weight: yup.number().positive('Weight must be positive').required('Weight is required'),
+  discount: yup.string(),
+  promo_expired: yup.date(),
+  is_pre_order: yup.string().required('Pre order is required'),
+  pre_order_duration: yup.number(),
+  categories: yup.array().min(1, 'At least one category is required'),
+  description: yup.string().required('Description is required'),
+});
+
+const { handleSubmit, resetForm, setValues } = useForm({
+  validationSchema: schema,
+});
+
+const { value: name, errorMessage: nameError } = useField('name');
+const { value: price, errorMessage: priceError } = useField('price');
+const { value: discount, errorMessage: discountError } = useField('discount');
+const { value: weight, errorMessage: weightError } = useField('weight');
+const { value: promo_expired, errorMessage: promoExpiredError } = useField('promo_expired');
+const { value: is_pre_order, errorMessage: isPreOrderError } = useField('is_pre_order');
+const { value: pre_order_duration, errorMessage: preOrderDurationError } = useField('pre_order_duration');
+const { value: description, errorMessage: descriptionError } = useField('description');
+const categories = ref([]);
+const categoriesError = ref('');
+
+const isPromoExpiredDisabled = ref(true);
+const isPreOrderDurationDisabled = ref(true);
+
+watch(discount, (newVal) => {
+  isPromoExpiredDisabled.value = !(newVal > 0);
+});
+
+watch(is_pre_order, (newVal) => {
+  isPreOrderDurationDisabled.value = newVal !== 'true';
+});
+
+watch(promo_expired, (newVal) => {
+  if (newVal) {
+    const date = new Date(newVal);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    promo_expired.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+});
+
+const loadProduct = async() => {
+  await productStore.getProductById(route.params.id);
+  setValues({
+    name: productStore.product.name,
+    price: productStore.product.price,
+    discount: productStore.product.discount,
+    weight: productStore.product.weight,
+    promo_expired: productStore.product.promo_expired,
+    is_pre_order: productStore.product.is_pre_order ? 'true' : 'false',
+    pre_order_duration: productStore.product.pre_order_duration,
+    description: productStore.product.description,
+  })
+  categories.value = productStore.product?.categories.map(category => category.sub_category.id);
+}
+
+const updateProduct = handleSubmit(async (values) => {
+  values.categories = categories.value.map(sub_category_id => ({ sub_category_id }));
+  values.promo_expired = values.promo_expired != undefined ? new Date(values.promo_expired).toISOString() : '';
+  values.discount = values.discount == '' ? 0 : values.discount;
+  values.is_pre_order = values.is_pre_order == 'true';
+  values.pre_order_duration = values.pre_order_duration == undefined ? '' : values.pre_order_duration;
+  if (values.promo_expired === '') {
+    delete values.promo_expired;
+  }
+  if (values.pre_order_duration === '') {
+    delete values.pre_order_duration;
+  }
+  try {
+    await productStore.updateProduct(values, route.params.id);
+    if (productStore.status_code === 200) {
+      Cookies.set('alert-message', 'Successfully update product');
+      Cookies.set('alert-page', 'Product');
+      navigateTo('/dashboard/product');
+    }
+  } catch (error) {
+    console.error('Error updating product:', error);
+  }
+});
+
+
+onMounted(async () => {
+  await subCategoryStore.getAllSubCategoryWithoutPaginate();
+  await loadProduct()
+});
 </script>
 
 <template>
-<!--  <div class="content container mt-4">-->
-<!--    <div class="row">-->
-<!--      <div class="col-12">-->
-<!--        <div class="card-default">-->
-<!--          <form @submit.prevent="updateService" class="form w-100">-->
-<!--            <div class="row g-3">-->
-<!--              <div class="col-12 d-flex gap-3 align-items-end">-->
-<!--                <div class="wrapper d-flex flex-column">-->
-<!--                  <label for="image" class="form-label">Service Image</label>-->
-<!--                  <img :src="updateDataImage" class="input-image" alt="Service Image" style="border-radius: 4px;"/>-->
-<!--                </div>-->
-<!--                <div class="wrapper">-->
-<!--                  <input type="file" id="image" class="input-hide" @change="previewImage" />-->
-<!--                  <label for="image" class="button-reverse w-100 text-center mt-3">Choose Image</label>-->
-<!--                  <p class="invalid-label">{{ imageError }}</p>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--              <div class="col-md-6">-->
-<!--                <div class="input-group d-flex flex-column">-->
-<!--                  <label for="name">Name</label>-->
-<!--                  <input type="text" class="input w-100" name="name" id="name"-->
-<!--                         placeholder="Enter your name.." autocomplete="off" v-model="name">-->
-<!--                  <p v-if="nameError" class="invalid-label">{{ nameError }}</p>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--              <div class="col-md-6">-->
-<!--                <div class="input-group d-flex flex-column">-->
-<!--                  <label for="price">Price</label>-->
-<!--                  <input type="number" class="input w-100" name="price" id="price"-->
-<!--                         placeholder="Enter your price.." autocomplete="off" v-model="price">-->
-<!--                  <p v-if="priceError" class="invalid-label">{{ priceError }}</p>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--              <div class="col-12">-->
-<!--                <div class="input-group d-flex flex-column">-->
-<!--                  <label for="entertainment_category_id">Entertainment Category</label>-->
-<!--                  <select class="input w-100" name="entertainment_category_id" id="entertainment_category_id" v-model="entertainment_category_id">-->
-<!--                    <option v-for="(category, index) in categoryStore.categoryAll" :key="index" :value="category.id">{{category.name}}</option>-->
-<!--                  </select>-->
-<!--                  <p v-if="entertainmentCategoryIdError" class="invalid-label">{{ entertainmentCategoryIdError }}</p>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--              <div class="col-md-6">-->
-<!--                <div class="input-group d-flex flex-column">-->
-<!--                  <label>Routes</label>-->
-<!--                  <div class="wrapper-checkbox d-flex gap-2 flex-wrap">-->
-<!--                    <div class="checkbox d-flex align-items-center gap-2 me-2" v-for="(route, index) in routeStore.routeAll" :key="index">-->
-<!--                      <input type="checkbox" :id="route.id" :value="route.id" v-model="routes">-->
-<!--                      <label class="mb-0" :for="route.id">{{route.address}}</label>-->
-<!--                    </div>-->
-<!--                  </div>-->
-<!--                  <p v-if="routesError" class="invalid-label">{{ routesError }}</p>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--              <div class="col-md-6">-->
-<!--                <div class="input-group d-flex flex-column">-->
-<!--                  <label>Facilities</label>-->
-<!--                  <div class="wrapper-checkbox d-flex gap-2 flex-wrap">-->
-<!--                    <div class="checkbox d-flex align-items-center gap-2 me-2" v-for="(facility, index) in facilityStore.facilityAll" :key="index">-->
-<!--                      <input type="checkbox" :id="facility.id" :value="facility.id" v-model="facilities">-->
-<!--                      <label class="mb-0" :for="facility.id">{{facility.name}}</label>-->
-<!--                    </div>-->
-<!--                  </div>-->
-<!--                  <p v-if="facilitiesError" class="invalid-label">{{ facilitiesError }}</p>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--              <div class="col-md-6">-->
-<!--                <div class="input-group d-flex flex-column">-->
-<!--                  <label>Instructor</label>-->
-<!--                  <div class="wrapper-checkbox d-flex gap-2 flex-wrap">-->
-<!--                    <div class="checkbox d-flex align-items-center gap-2 me-2" v-for="(instructor, index) in instructorStore.instructorAll" :key="index">-->
-<!--                      <input type="checkbox" :id="instructor.id" :value="instructor.id" v-model="instructors">-->
-<!--                      <label class="mb-0" :for="instructor.id">{{instructor.name}}</label>-->
-<!--                    </div>-->
-<!--                  </div>-->
-<!--                  <p v-if="instructorsError" class="invalid-label">{{ instructorsError }}</p>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--              <div class="col-md-6">-->
-<!--                <div class="input-group d-flex flex-column">-->
-<!--                  <label>Mandatory Luggage</label>-->
-<!--                  <div class="wrapper-checkbox d-flex gap-2 flex-wrap">-->
-<!--                    <div class="checkbox d-flex align-items-center gap-2 me-2" v-for="(luggage, index) in luggageStore.luggageAll" :key="index">-->
-<!--                      <input type="checkbox" :id="luggage.id" :value="luggage.id" v-model="mandatory_luggages">-->
-<!--                      <label class="mb-0" :for="luggage.id">{{luggage.name}}</label>-->
-<!--                    </div>-->
-<!--                  </div>-->
-<!--                  <p v-if="mandatoryLuggagesError" class="invalid-label">{{ mandatoryLuggagesError }}</p>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--              <div class="col-12">-->
-<!--                <div class="button-group d-flex gap-2">-->
-<!--                  <button type="submit" class="button-primary-small">Save Changes</button>-->
-<!--                  <NuxtLink :to="{path: '/dashboard/entertainment-service'}" class="button-reverse">Cancel Edit</NuxtLink>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </form>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--  </div>-->
+  <div class="content container mt-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="card-default">
+          <form @submit.prevent="updateProduct" class="form w-100">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="input-group d-flex flex-column">
+                  <label for="name">Name</label>
+                  <input type="text" class="input w-100" name="name" id="name"
+                         placeholder="Enter your name.." autocomplete="off" v-model="name">
+                  <p v-if="nameError" class="invalid-label">{{ nameError }}</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="input-group d-flex flex-column">
+                  <label for="price">Price</label>
+                  <input type="number" class="input w-100" name="price" id="price"
+                         placeholder="Enter your price.." autocomplete="off" v-model="price">
+                  <p v-if="priceError" class="invalid-label">{{ priceError }}</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="input-group d-flex flex-column">
+                  <label for="weight">Weight</label>
+                  <input type="number" step="0.01" class="input w-100" name="weight" id="weight"
+                         placeholder="Enter your weight.." autocomplete="off" v-model="weight">
+                  <p v-if="weightError" class="invalid-label">{{ weightError }}</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="input-group d-flex flex-column">
+                  <label for="discount">Discount (Percent)</label>
+                  <input type="number" class="input w-100" name="discount" id="discount"
+                         placeholder="Enter your discount.." autocomplete="off" v-model="discount" min="0">
+                  <p v-if="discountError" class="invalid-label">{{ discountError }}</p>
+                </div>
+              </div>
+              <div class="col-md-6" :class="{'d-none': isPromoExpiredDisabled}">
+                <div class="input-group d-flex flex-column">
+                  <label for="promo_expired">Promo Expired</label>
+                  <input type="datetime-local" class="input w-100" name="promo_expired" id="promo_expired"
+                         placeholder="Enter your promo expired.." autocomplete="off" v-model="promo_expired">
+                  <p v-if="promoExpiredError" class="invalid-label">{{ promoExpiredError }}</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="input-group d-flex flex-column">
+                  <label for="is_pre_order">Is Pre Order</label>
+                  <select class="input w-100" name="is_pre_order" id="is_pre_order" autocomplete="off" v-model="is_pre_order">
+                    <option value="true">Active</option>
+                    <option value="false">Unactive</option>
+                  </select>
+                  <p v-if="isPreOrderError" class="invalid-label">{{ isPreOrderError }}</p>
+                </div>
+              </div>
+              <div class="col-md-6" :class="{'d-none': isPreOrderDurationDisabled}">
+                <div class="input-group d-flex flex-column">
+                  <label for="pre_order_duration">Pre Order Duration (Days)</label>
+                  <input type="number" class="input w-100" name="pre_order_duration" id="pre_order_duration"
+                         placeholder="Enter your pre order duration.." autocomplete="off" v-model="pre_order_duration">
+                  <p v-if="preOrderDurationError" class="invalid-label">{{ preOrderDurationError }}</p>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="input-group d-flex flex-column">
+                  <label>Sub Category</label>
+                  <div class="wrapper-checkbox d-flex gap-2 flex-wrap">
+                    <div class="checkbox d-flex align-items-center gap-2 me-2" v-for="(subCategory, index) in subCategoryStore.subCategoryAll" :key="index">
+                      <input type="checkbox" :id="subCategory.id" :value="subCategory.id" v-model="categories">
+                      <label class="mb-0" :for="subCategory.id">{{subCategory.name}}</label>
+                    </div>
+                  </div>
+                  <p v-if="categoriesError" class="invalid-label">{{ categoriesError }}</p>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="input-group d-flex flex-column">
+                  <label for="description">Description</label>
+                  <textarea class="input w-100" name="description" id="description" autocomplete="off" v-model="description" rows="4"></textarea>
+                  <p v-if="descriptionError" class="invalid-label">{{ descriptionError }}</p>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="button-group d-flex gap-2">
+                  <button type="submit" class="button-primary-small">Save Changes</button>
+                  <NuxtLink :to="{path: '/dashboard/product'}" class="button-reverse">Cancel Edit</NuxtLink>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
