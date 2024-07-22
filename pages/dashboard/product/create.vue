@@ -18,7 +18,7 @@ const subCategoryStore = useSubCategoryStore();
 const schema = yup.object({
   name: yup.string().required('Name is required'),
   price: yup.number().required('Price is required'),
-  weight: yup.number().required('Weight is required'),
+  weight: yup.number().positive('Weight must be positive').required('Weight is required'),
   discount: yup.string(),
   promo_expired: yup.date(),
   is_pre_order: yup.string().required('Pre order is required'),
@@ -46,7 +46,7 @@ const isPromoExpiredDisabled = ref(true);
 const isPreOrderDurationDisabled = ref(true);
 
 watch(discount, (newVal) => {
-  isPromoExpiredDisabled.value = newVal === '';
+  isPromoExpiredDisabled.value = !(newVal > 0);
 });
 
 watch(is_pre_order, (newVal) => {
@@ -54,11 +54,17 @@ watch(is_pre_order, (newVal) => {
 });
 
 const createProduct = handleSubmit(async (values) => {
-  values.categories = categories.value.map(sub_subCategory_id => ({ sub_subCategory_id }));
+  values.categories = categories.value.map(sub_category_id => ({ sub_category_id }));
   values.promo_expired = values.promo_expired != undefined ? new Date(values.promo_expired).toISOString() : '';
-  values.discount = values.discount == undefined ? '' : values.discount;
+  values.discount = values.discount == '' ? 0 : values.discount;
+  values.is_pre_order = values.is_pre_order == 'true';
   values.pre_order_duration = values.pre_order_duration == undefined ? '' : values.pre_order_duration;
-  console.log(values)
+  if (values.promo_expired === '') {
+    delete values.promo_expired;
+  }
+  if (values.pre_order_duration === '') {
+    delete values.pre_order_duration;
+  }
   try {
     await productStore.createProduct(values);
     if (productStore.status_code === 201) {
@@ -104,16 +110,16 @@ onMounted(async () => {
               <div class="col-md-6">
                 <div class="input-group d-flex flex-column">
                   <label for="weight">Weight</label>
-                  <input type="number" class="input w-100" name="weight" id="weight"
+                  <input type="number" step="0.01" class="input w-100" name="weight" id="weight"
                          placeholder="Enter your weight.." autocomplete="off" v-model="weight">
                   <p v-if="weightError" class="invalid-label">{{ weightError }}</p>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="input-group d-flex flex-column">
-                  <label for="discount">Discount</label>
+                  <label for="discount">Discount (Percent)</label>
                   <input type="number" class="input w-100" name="discount" id="discount"
-                         placeholder="Enter your discount.." autocomplete="off" v-model="discount">
+                         placeholder="Enter your discount.." autocomplete="off" v-model="discount" min="0">
                   <p v-if="discountError" class="invalid-label">{{ discountError }}</p>
                 </div>
               </div>
@@ -137,7 +143,7 @@ onMounted(async () => {
               </div>
               <div class="col-md-6" :class="{'d-none': isPreOrderDurationDisabled}">
                 <div class="input-group d-flex flex-column">
-                  <label for="pre_order_duration">Pre Order Duration</label>
+                  <label for="pre_order_duration">Pre Order Duration (Days)</label>
                   <input type="number" class="input w-100" name="pre_order_duration" id="pre_order_duration"
                          placeholder="Enter your pre order duration.." autocomplete="off" v-model="pre_order_duration">
                   <p v-if="preOrderDurationError" class="invalid-label">{{ preOrderDurationError }}</p>
