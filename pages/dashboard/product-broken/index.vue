@@ -103,41 +103,6 @@ const productBrokenDetail = async (productBrokenSelect: any) => {
   });
 }
 
-const updateProductBroken = handleSubmit( async (values) => {
-  values.date = new Date(values.date).toISOString();
-  await productBrokenStore.updateProductBroken(values, productBrokenData.value.id);
-  if (productBrokenStore.status_code === 200) {
-    Cookies.set('alert-message', 'Successfully update product broken');
-    Cookies.set('alert-page', 'Product Broken');
-    alertMessage = useCookie('alert-message')
-    alertPage = useCookie('alert-page')
-    setValues({
-      product_id: '',
-      supplier_id: '',
-      qty: '',
-      date: '',
-      note: '',
-    });
-    productBrokenData.value = null;
-    await productBrokenStore.getAllProductBroken()
-  }
-});
-
-const confirmDeleteProductBroken = async () => {
-  if (productBrokenData.value) {
-    await productBrokenStore.deleteProductBroken(productBrokenData.value.id);
-    if (productBrokenStore.status_code === 200) {
-      Cookies.set('alert-message', 'Successfully deleted product broken');
-      Cookies.set('alert-page', 'Product Broken');
-      alertMessage = useCookie('alert-message')
-      alertPage = useCookie('alert-page')
-    }
-    productBrokenData.value = null;
-    totalPages.value = Math.ceil(productBrokenStore.totalPages / productBrokenStore.pageSize)
-    productBrokenLength.value = productBrokenStore.productBrokenAll.length
-  }
-};
-
 onMounted(async () => {
   await productBrokenStore.getAllProductBroken()
   await productStore.getAllProductWithoutPaginate()
@@ -201,15 +166,6 @@ onBeforeRouteUpdate((to, from, next) => {
                   <button type="button" data-bs-toggle="modal" data-bs-target="#detailModal" @click="productBrokenDetail(productBroken)"
                             class="wrapper-icon icon-detail d-flex align-items-center justify-content-center">
                     <i class="fa-solid fa-eye" style="font-size: 0.85rem;"></i>
-                  </button>
-                  <button type="button" data-bs-toggle="modal" data-bs-target="#updateModal" @click="productBrokenDetail(productBroken)"
-                            class="wrapper-icon icon-edit d-flex align-items-center justify-content-center">
-                    <i class="fa-solid fa-pen-to-square" style="font-size: 0.85rem;"></i>
-                  </button>
-                  <button type="button"
-                          class="wrapper-icon icon-delete d-flex align-items-center justify-content-center"
-                          data-bs-toggle="modal" data-bs-target="#deleteModal" @click="productBrokenData = productBroken">
-                    <i class="fa-solid fa-trash-can" style="font-size: 0.85rem;"></i>
                   </button>
                 </td>
               </tr>
@@ -354,90 +310,6 @@ onBeforeRouteUpdate((to, from, next) => {
               <button type="submit" class="button-primary-small" data-bs-dismiss="modal">Add New Product Broken</button>
             </div>
           </form>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <form @submit.prevent="updateProductBroken" class="form w-100">
-            <div class="modal-header d-flex align-items-center justify-content-between">
-              <h1 class="modal-title fs-5" id="updateModalLabel">Edit Product Broken</h1>
-              <button type="button" data-bs-dismiss="modal" aria-label="Close" @click="removeProductBrokenDetail()">
-                <i class="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-            <div class="modal-body">
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <div class="input-group d-flex flex-column">
-                    <label for="product_id">Product</label>
-                    <select class="input w-100" name="product_id" id="product_id" autocomplete="off" v-model="product_id">
-                      <option v-for="(product, index) in productStore.productAll" :key="index" :value="product.id">{{product.name}}</option>
-                    </select>
-                    <p v-if="productIdError" class="invalid-label">{{ productIdError }}</p>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="input-group d-flex flex-column">
-                    <label for="supplier_id">Supplier</label>
-                    <select class="input w-100" name="supplier_id" id="supplier_id" autocomplete="off" v-model="supplier_id">
-                      <option v-for="(supplier, index) in supplierStore.supplierAll" :key="index" :value="supplier.id">{{supplier.name}}</option>
-                    </select>
-                    <p v-if="supplierIdError" class="invalid-label">{{ supplierIdError }}</p>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="input-group d-flex flex-column">
-                    <label for="qty">Quantity</label>
-                    <input type="number" class="input w-100" name="qty" id="qty"
-                           placeholder="Enter your qty.." autocomplete="off" v-model="qty" readonly>
-                    <p v-if="qtyError" class="invalid-label">{{ qtyError }}</p>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="input-group d-flex flex-column">
-                    <label for="date">Date</label>
-                    <input type="datetime-local" class="input w-100" name="date" id="date"
-                           placeholder="Enter your date.." autocomplete="off" v-model="date">
-                    <p v-if="dateError" class="invalid-label">{{ dateError }}</p>
-                  </div>
-                </div>
-                <div class="col-12">
-                  <div class="input-group d-flex flex-column">
-                    <label for="note">Note</label>
-                    <textarea class="input w-100" name="note" id="note" placeholder="Enter your note.." autocomplete="off" v-model="note" rows="4"></textarea>
-                    <p v-if="noteError" class="invalid-label">{{ noteError }}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="button-reverse" data-bs-dismiss="modal" @click="removeProductBrokenDetail()">Cancel Edit</button>
-              <button type="submit" class="button-primary-small" data-bs-dismiss="modal">Save Changes</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header d-flex align-items-center justify-content-between">
-            <h1 class="modal-title fs-5" id="deleteModalLabel">Delete Product Broken</h1>
-            <button type="button" data-bs-dismiss="modal" aria-label="Close">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-          <div class="modal-body">
-            <p style="font-size: 0.913rem">Are you sure want to delete this product broken?</p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="button-reverse" data-bs-dismiss="modal">Cancel Delete</button>
-            <button type="button" class="button-primary-small" @click="confirmDeleteProductBroken" data-bs-dismiss="modal">Delete Product Broken</button>
-          </div>
         </div>
       </div>
     </div>
