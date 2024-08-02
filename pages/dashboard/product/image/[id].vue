@@ -59,6 +59,20 @@ const uploadImageProduct = handleSubmit(async (values) => {
   }
 });
 
+const updateProductImage = async () => {
+  if (productImageData.value) {
+    await productStore.updateImageProduct(productImageData.value);
+    if (productStore.status_code === 200) {
+      Cookies.set('alert-message', 'Successfully update status product image');
+      Cookies.set('alert-page', 'Product');
+      router.push(`/dashboard/product/${route.params.id}`);
+    }
+    productImageData.value = null;
+    await productStore.getProductById(route.params.id);
+    productImageLength.value = productStore.product.images.length;
+  }
+};
+
 const confirmDeleteProductImage = async () => {
   if (productImageData.value) {
     await productStore.deleteImageProduct(productImageData.value);
@@ -112,8 +126,13 @@ onMounted(async () => {
                     <tbody>
                     <tr>
                       <td v-if="productImageLength > 0" :class="{'d-flex gap-3': productImageLength > 0}">
-                        <img v-for="(image, index) in productStore.product.images" :key="index" :src="`http://localhost:8000/${image.image_path}`" class="input-image" :class="{active: image.is_primary}" alt="Product Image" style="border-radius: 4px;" data-bs-toggle="modal" data-bs-target="#deleteModal"
-                             @click="productImageData = {ids: [image.id]}"/>
+                        <div class="wrapper-image-product position-relative" v-for="(image, index) in productStore.product.images" :key="index">
+                          <img :src="`http://localhost:8000/${image.image_path}`" class="input-image position-relative" :class="{active: image.is_primary}" alt="Product Image" style="border-radius: 4px;"/>
+                          <div class="popup-action d-flex gap-3 align-items-center justify-content-center">
+                            <i class="fa-solid fa-pen-to-square" data-bs-toggle="modal" data-bs-target="#updateModal" @click="productImageData = {product_id: route.params.id, product_image_id: image.id}"></i>
+                            <i class="fa-solid fa-trash-can" data-bs-toggle="modal" data-bs-target="#deleteModal" @click="productImageData = {ids: [image.id]}"></i>
+                          </div>
+                        </div>
                       </td>
                       <td v-else>Image product not found!</td>
                     </tr>
@@ -129,6 +148,26 @@ onMounted(async () => {
               </div>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header d-flex align-items-center justify-content-between">
+            <h1 class="modal-title fs-5" id="updateModalLabel">Update Status Image Product</h1>
+            <button type="button" data-bs-dismiss="modal" aria-label="Close">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p style="font-size: 0.913rem">Are you sure want to update status this image product?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="button-reverse" data-bs-dismiss="modal">Cancel Update</button>
+            <button type="button" class="button-primary-small" @click="updateProductImage" data-bs-dismiss="modal">Update Image Product</button>
+          </div>
         </div>
       </div>
     </div>
