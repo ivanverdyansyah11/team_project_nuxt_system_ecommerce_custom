@@ -17,9 +17,12 @@ const categoryData = ref(null);
 const totalPages = ref(0)
 let alertMessage = useCookie('alert-message')
 let alertPage = useCookie('alert-page')
+const dataImage = ref('https://placehold.co/600x400?text=Image+Not+Found');
+const file = ref(null);
 
 const schema = yup.object({
   name: yup.string().required('Name is required'),
+  image: yup.mixed().required('Image is required'),
 });
 
 const { handleSubmit, resetForm, setValues } = useForm({
@@ -27,6 +30,21 @@ const { handleSubmit, resetForm, setValues } = useForm({
 });
 
 const { value: name, errorMessage: nameError } = useField('name');
+const { value: image, errorMessage: imageError } = useField('image');
+
+const previewImage = (e: any) => {
+  file.value = e.target.files[0];
+  image.value = e.target.files[0];
+  if (!file.value) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    if (typeof reader.result === "string") {
+      dataImage.value = reader.result;
+    }
+    e.target.value = "";
+  };
+  reader.readAsDataURL(file.value);
+}
 
 const search = async (event: any) => {
   event.preventDefault()
@@ -45,17 +63,24 @@ const changePage = async (page: number) => {
 
 const createCategory = handleSubmit( async (values) => {
   await categoryStore.createCategory(values);
-  if (categoryStore.status_code === 200) {
-    Cookies.set('alert-message', 'Successfully create new category');
-    Cookies.set('alert-page', 'Category');
-    alertMessage = useCookie('alert-message')
-    alertPage = useCookie('alert-page')
-    setValues({
-      name: '',
-    });
-    await categoryStore.getAllCategory()
-    totalPages.value = Math.ceil(categoryStore.totalPages / categoryStore.pageSize)
-    categoryLength.value = categoryStore.categoryAll.length
+  if (categoryStore.status_code === 200 && file.value) {
+    await categoryStore.getAllCategoryWithoutPaginate()
+    const formData = new FormData();
+    formData.append('image', file.value);
+    await categoryStore.saveImageCategory(formData, categoryStore.categoryAll[0].id);
+    if (categoryStore.status_code === 200) {
+      Cookies.set('alert-message', 'Successfully create new category');
+      Cookies.set('alert-page', 'Category');
+      alertMessage = useCookie('alert-message')
+      alertPage = useCookie('alert-page')
+      setValues({
+        name: '',
+        image: 'https://placehold.co/600x400?text=Image+Not+Found',
+      });
+      await categoryStore.getAllCategory()
+      totalPages.value = Math.ceil(categoryStore.totalPages / categoryStore.pageSize)
+      categoryLength.value = categoryStore.categoryAll.length
+    }
   }
 });
 
@@ -63,6 +88,7 @@ const removeCategoryDetail = async () => {
   categoryData.value = null
   setValues({
     name: '',
+    image: 'https://placehold.co/600x400?text=Image+Not+Found',
   });
 }
 
@@ -70,20 +96,28 @@ const categoryDetail = async (categorySelect: any) => {
   await categoryStore.getCategoryById(categorySelect.id);
   categoryData.value = categorySelect
   const category = categoryStore.category;
+  dataImage.value = category.image_path != null ? `http://localhost:8000/${category.image_path}` : 'https://placehold.co/600x400?text=Image+Not+Found';
   setValues({
     name: category.name,
+    image: category.image_path,
   });
 }
 
 const updateCategory = handleSubmit( async (values) => {
   await categoryStore.updateCategory(values, categoryData.value.id);
   if (categoryStore.status_code === 200) {
+    if (file.value) {
+      const formData = new FormData();
+      formData.append('image', file.value);
+      await categoryStore.saveImageCategory(formData, categoryData.value.id);
+    }
     Cookies.set('alert-message', 'Successfully update category');
     Cookies.set('alert-page', 'Category');
     alertMessage = useCookie('alert-message')
     alertPage = useCookie('alert-page')
     setValues({
       name: '',
+      image: 'https://placehold.co/600x400?text=Image+Not+Found',
     });
     categoryData.value = null;
     await categoryStore.getAllCategory()
@@ -205,6 +239,12 @@ onBeforeRouteUpdate((to, from, next) => {
           <div class="modal-body">
             <form class="form">
               <div class="row g-3">
+                <div class="col-12 d-flex gap-3 align-items-end">
+                  <div class="wrapper d-flex flex-column">
+                    <label for="image" class="form-label">Category Image</label>
+                    <img :src="dataImage" class="input-image" alt="Blog Image" style="border-radius: 4px;"/>
+                  </div>
+                </div>
                 <div class="col-12">
                   <div class="input-group d-flex flex-column">
                     <label for="name">Name</label>
@@ -234,6 +274,17 @@ onBeforeRouteUpdate((to, from, next) => {
             </div>
             <div class="modal-body">
               <div class="row g-3">
+                <div class="col-12 d-flex gap-3 align-items-end">
+                  <div class="wrapper d-flex flex-column">
+                    <label for="image" class="form-label">Category Image</label>
+                    <img :src="dataImage" class="input-image" alt="Blog Image" style="border-radius: 4px;"/>
+                  </div>
+                  <div class="wrapper">
+                    <input type="file" id="image" class="input-hide" @change="previewImage" />
+                    <label for="image" class="button-reverse w-100 text-center mt-3">Choose Image</label>
+                    <p class="invalid-label">{{ imageError }}</p>
+                  </div>
+                </div>
                 <div class="col-12">
                   <div class="input-group d-flex flex-column">
                     <label for="name">Name</label>
@@ -265,6 +316,17 @@ onBeforeRouteUpdate((to, from, next) => {
             </div>
             <div class="modal-body">
               <div class="row g-3">
+                <div class="col-12 d-flex gap-3 align-items-end">
+                  <div class="wrapper d-flex flex-column">
+                    <label for="image" class="form-label">Category Image</label>
+                    <img :src="dataImage" class="input-image" alt="Blog Image" style="border-radius: 4px;"/>
+                  </div>
+                  <div class="wrapper">
+                    <input type="file" id="image" class="input-hide" @change="previewImage" />
+                    <label for="image" class="button-reverse w-100 text-center mt-3">Choose Image</label>
+                    <p class="invalid-label">{{ imageError }}</p>
+                  </div>
+                </div>
                 <div class="col-12">
                   <div class="input-group d-flex flex-column">
                     <label for="name">Name</label>
