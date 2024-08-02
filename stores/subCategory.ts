@@ -14,10 +14,8 @@ export const useSubCategoryStore = defineStore('subCategory', {
     actions: {
         async getAllSubCategoryWithoutPaginate() {
             try {
-                const token = useCookie('auth-token')
                 const response = await $fetch(`${ apiUrl }/category/items`, {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token.value}` },
                 })
                 this.subCategoryAll = response?.data ? response?.data : []
             } catch (error) {
@@ -26,10 +24,8 @@ export const useSubCategoryStore = defineStore('subCategory', {
         },
         async getAllSubCategory() {
             try {
-                const token = useCookie('auth-token')
                 const response = await $fetch(`${ apiUrl }/category/items?current_page=${this.page}&page_size=${this.pageSize}&search=${this.keyword}`, {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token.value}` },
                 })
                 this.subCategoryAll = response?.data ? response?.data : []
                 this.totalPages = response?.meta?.total
@@ -39,10 +35,8 @@ export const useSubCategoryStore = defineStore('subCategory', {
         },
         async getSubCategoryById(subCategoryId: string) {
             try {
-                const token = useCookie('auth-token')
                 const response = await $fetch(`${ apiUrl }/category/items/${ subCategoryId }`, {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token.value}` },
                 })
                 this.subCategory = response?.data ? response?.data : {}
             } catch (error) {
