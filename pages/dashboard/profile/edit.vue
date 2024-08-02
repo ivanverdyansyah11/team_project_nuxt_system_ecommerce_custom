@@ -2,9 +2,10 @@
 import { useAuthStore } from "~/stores/auth";
 import { ref, onMounted } from 'vue';
 import { useField, useForm } from 'vee-validate'
+import { navigateTo } from "nuxt/app";
 import * as yup from 'yup'
 import Cookies from "js-cookie";
-import { navigateTo } from "nuxt/app";
+import profileNotFound from '~/assets/image/profile/profile-not-found.svg'
 
 definePageMeta({
   title: 'Edit Profile Page',
@@ -12,8 +13,9 @@ definePageMeta({
 });
 
 const authStore = useAuthStore();
-const updateDataImage = ref('https://placehold.co/600x400?text=Image+Not+Found');
+const updateDataImage = ref(profileNotFound);
 const file = ref<File | null>(null);
+const userLogin = useCookie('auth-user');
 
 const schema = yup.object({
   name: yup.string().required('Name is required'),
@@ -21,6 +23,8 @@ const schema = yup.object({
   email: yup.string().email().required('Email is required'),
   password: yup.string(),
   image: yup.mixed().required('Image is required'),
+  employee_code: yup.string(),
+  address: yup.string(),
 });
 
 const { handleSubmit, resetForm, setValues } = useForm({
@@ -32,6 +36,8 @@ const { value: username, errorMessage: usernameError } = useField('username');
 const { value: email, errorMessage: emailError } = useField('email');
 const { value: password, errorMessage: passwordError } = useField('password');
 const { value: image, errorMessage: imageError } = useField('image');
+const { value: employee_code, errorMessage: employeeCodeError } = useField('employee_code');
+const { value: address, errorMessage: addressError } = useField('address');
 
 const loadProfile = async () => {
   try {
@@ -39,9 +45,7 @@ const loadProfile = async () => {
     const profilePath = authStore?.user?.user?.profile_path;
     if (profilePath) {
       updateDataImage.value = `http://localhost:8000/${profilePath}`;
-    } else {
-      updateDataImage.value = 'https://placehold.co/600x400?text=Image+Not+Found';
-    }
+    };
     setValues({
       name: authStore.user.name,
       username: authStore.user.user.username,
@@ -49,6 +53,15 @@ const loadProfile = async () => {
       password: '',
       image: updateDataImage.value,
     });
+    if (userLogin.value.user.role == 'staff') {
+      setValues({
+        employee_code: authStore.user.employee_code,
+      });
+    } else if(userLogin.value.user.role == 'supplier') {
+      setValues({
+        address: authStore.user.address,
+      });
+    }
   } catch (error) {
     console.error('Error loading profile:', error);
   }
@@ -70,6 +83,12 @@ const previewImage = (e: Event) => {
 };
 
 const updateProfile = handleSubmit(async (values) => {
+  if (userLogin.value.user.role != 'staff') {
+    delete values.employee_code;
+  }
+  if (userLogin.value.user.role != 'supplier') {
+    delete values.address;
+  }
   const { image, ...valueData } = values;
   try {
     await authStore.updateProfile(valueData);
@@ -118,6 +137,14 @@ onMounted(async () => {
               </div>
               <div class="col-md-9">
                 <div class="row g-3">
+                  <div class="col-12" v-if="userLogin.user.role == 'staff'">
+                    <div class="input-group d-flex flex-column">
+                      <label for="employee_code">Employee Code</label>
+                      <input type="text" class="input w-100" name="employee_code" id="employee_code"
+                             placeholder="Enter your employee code.." autocomplete="off" v-model="employee_code">
+                      <p v-if="employeeCodeError" class="invalid-label">{{ employeeCodeError }}</p>
+                    </div>
+                  </div>
                   <div class="col-12">
                     <div class="input-group d-flex flex-column">
                       <label for="name">Name</label>
@@ -148,6 +175,14 @@ onMounted(async () => {
                       <input type="password" class="input w-100" name="password" id="password"
                              placeholder="Enter your password.." autocomplete="off" v-model="password">
                       <p v-if="passwordError" class="invalid-label">{{ passwordError }}</p>
+                    </div>
+                  </div>
+                  <div class="col-12" v-if="userLogin.user.role == 'supplier'">
+                    <div class="input-group d-flex flex-column">
+                      <label for="address">Address</label>
+                      <textarea class="input w-100" name="address" id="address"
+                                placeholder="Enter your address.." autocomplete="off" v-model="address" rows="4"></textarea>
+                      <p v-if="addressError" class="invalid-label">{{ addressError }}</p>
                     </div>
                   </div>
                   <div class="col-12">
