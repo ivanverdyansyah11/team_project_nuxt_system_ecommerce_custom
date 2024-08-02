@@ -15,9 +15,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         authStore.user = authUser.value;
     }
 
-    if (!authStore.isLoggedIn && (to.path === '/dashboard')) {
-        return navigateTo('/dashboard/auth/login');
-    } else if (authStore.isLoggedIn && (to.path === '/dashboard/auth/login' || to.path === '/dashboard/auth/register')) {
+    if (!authStore.isLoggedIn && to.path.startsWith('/dashboard')) {
+        return navigateTo('/auth/login');
+    } else if (authStore.isLoggedIn && (to.path === '/auth/login' || to.path === '/auth/register')) {
         return navigateTo('/dashboard');
     }
 });
