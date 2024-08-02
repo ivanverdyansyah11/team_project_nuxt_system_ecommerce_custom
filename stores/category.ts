@@ -14,10 +14,8 @@ export const useCategoryStore = defineStore('category', {
     actions: {
         async getAllCategoryWithoutPaginate() {
             try {
-                const token = useCookie('auth-token')
-                const response = await $fetch(`${ apiUrl }/categories`, {
+                const response = await $fetch(`${ apiUrl }/categories?search=${this.keyword}`, {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token.value}` },
                 })
                 this.categoryAll = response?.data ? response?.data : []
             } catch (error) {
@@ -26,10 +24,8 @@ export const useCategoryStore = defineStore('category', {
         },
         async getAllCategory() {
             try {
-                const token = useCookie('auth-token')
                 const response = await $fetch(`${ apiUrl }/categories?current_page=${this.page}&page_size=${this.pageSize}&search=${this.keyword}`, {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token.value}` },
                 })
                 this.categoryAll = response?.data ? response?.data : []
                 this.totalPages = response?.meta?.total
@@ -39,10 +35,8 @@ export const useCategoryStore = defineStore('category', {
         },
         async getCategoryById(categoryId: string) {
             try {
-                const token = useCookie('auth-token')
                 const response = await $fetch(`${ apiUrl }/categories/${ categoryId }`, {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token.value}` },
                 })
                 this.category = response?.data ? response?.data : {}
             } catch (error) {
@@ -72,6 +66,19 @@ export const useCategoryStore = defineStore('category', {
                     body: updateData
                 });
                 this.status_code = response?.data ? 200 : null;
+            } catch (error) {
+                console.log(error?.message)
+            }
+        },
+        async saveImageCategory(formData: FormData, categoryId: string) {
+            try {
+                const token = useCookie('auth-token')
+                const response = await $fetch(`${apiUrl}/categories/image/${categoryId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token.value}` },
+                    body: formData
+                });
+                this.status_code = response.meta.code;
             } catch (error) {
                 console.log(error?.message)
             }
