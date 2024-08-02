@@ -47,7 +47,7 @@ export const useAuthStore = defineStore('auth', {
                     method: 'GET',
                     headers: { 'Authorization': `Bearer ${token.value}` },
                 });
-                this.user = response?.data;
+                this.user = response.data;
                 Cookies.set('auth-user', JSON.stringify(this.user));
             } catch (error) {
                 console.log(error.message)
