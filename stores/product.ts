@@ -14,10 +14,8 @@ export const useProductStore = defineStore('product', {
     actions: {
         async getAllProductWithoutPaginate() {
             try {
-                const token = useCookie('auth-token')
-                const response = await $fetch(`${ apiUrl }/products`, {
+                const response = await $fetch(`${ apiUrl }/products?search=${this.keyword}`, {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token.value}` },
                 })
                 this.productAll = response?.data ? response?.data : []
             } catch (error) {
@@ -26,10 +24,8 @@ export const useProductStore = defineStore('product', {
         },
         async getAllProduct() {
             try {
-                const token = useCookie('auth-token')
                 const response = await $fetch(`${ apiUrl }/products?current_page=${this.page}&page_size=${this.pageSize}&search=${this.keyword}`, {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token.value}` },
                 })
                 this.productAll = response?.data ? response?.data : []
                 this.totalPages = response?.meta?.total
@@ -39,10 +35,8 @@ export const useProductStore = defineStore('product', {
         },
         async getProductById(productId: string) {
             try {
-                const token = useCookie('auth-token')
                 const response = await $fetch(`${ apiUrl }/products/${ productId }`, {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token.value}` },
                 })
                 this.product = response?.data ? response?.data : {}
             } catch (error) {
@@ -81,6 +75,19 @@ export const useProductStore = defineStore('product', {
                 const token = useCookie('auth-token')
                 const response = await $fetch(`${apiUrl}/products/image`, {
                     method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token.value}` },
+                    body: formData
+                });
+                this.status_code = response.meta.code;
+            } catch (error) {
+                console.log(error?.message)
+            }
+        },
+        async updateImageProduct(formData: FormData) {
+            try {
+                const token = useCookie('auth-token')
+                const response = await $fetch(`${apiUrl}/products/image`, {
+                    method: 'PATCH',
                     headers: { 'Authorization': `Bearer ${token.value}` },
                     body: formData
                 });
