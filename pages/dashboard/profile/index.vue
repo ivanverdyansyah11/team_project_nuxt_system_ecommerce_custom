@@ -2,6 +2,7 @@
 import { useAuthStore } from "~/stores/auth";
 import { ref, onMounted } from 'vue';
 import Cookies from "js-cookie";
+import profileNotFound from '~/assets/image/profile/profile-not-found.svg'
 
 definePageMeta({
   title: 'Profile Page',
@@ -9,7 +10,8 @@ definePageMeta({
 });
 
 const authStore = useAuthStore();
-const updateDataImage = ref('https://placehold.co/600x400?text=Image+Not+Found');
+const updateDataImage = ref(profileNotFound);
+const userLogin = useCookie('auth-user');
 let alertMessage = useCookie('alert-message');
 let alertPage = useCookie('alert-page');
 
@@ -19,9 +21,8 @@ const loadProfile = async () => {
     const profilePath = authStore?.user?.user?.profile_path;
     if (profilePath) {
       updateDataImage.value = `http://localhost:8000/${profilePath}`;
-    } else {
-      updateDataImage.value = 'https://placehold.co/600x400?text=Image+Not+Found';
     }
+    console.log(authStore.user)
   } catch (error) {
     console.error('Error loading profile:', error);
   }
@@ -66,6 +67,12 @@ onBeforeRouteUpdate(() => {
               </div>
               <div class="col-md-9">
                 <div class="row g-3">
+                  <div class="col-12" v-if="userLogin.user.role == 'staff'">
+                    <div class="input-group d-flex flex-column">
+                      <label for="employee_code">Employee Code</label>
+                      <input type="text" class="input w-100" name="employee_code" id="employee_code" autocomplete="off" readonly v-model="authStore.user.employee_code">
+                    </div>
+                  </div>
                   <div class="col-12">
                     <div class="input-group d-flex flex-column">
                       <label for="name">Name</label>
@@ -85,6 +92,12 @@ onBeforeRouteUpdate(() => {
                       <label for="email">Email</label>
                       <input type="email" class="input w-100" name="email" id="email"
                              readonly v-model="authStore.user.user.email">
+                    </div>
+                  </div>
+                  <div class="col-12" v-if="userLogin.user.role == 'supplier'">
+                    <div class="input-group d-flex flex-column">
+                      <label for="address">Address</label>
+                      <textarea class="input w-100" name="address" id="address" autocomplete="off" v-model="authStore.user.address" rows="4" readonly></textarea>
                     </div>
                   </div>
                   <div class="col-12">
