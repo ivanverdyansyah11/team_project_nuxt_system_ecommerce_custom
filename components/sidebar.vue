@@ -6,7 +6,7 @@ const authStore = useAuthStore();
 const logout = async (event: any) => {
   event.preventDefault();
   await authStore.logout();
-  navigateTo('/dashboard/auth/login');
+  navigateTo('/auth/login');
 };
 
 const toggleActive = (event: Event) => {
@@ -43,14 +43,14 @@ const toggleActive = (event: Event) => {
           Master Data
         </div>
         <div class="child-menu flex-column gap-1">
-          <NuxtLink to="/dashboard/product" :class="{ active: $route.path === '/dashboard/product' || $route.path.startsWith('/dashboard/product/') }">Product</NuxtLink>
           <NuxtLink to="/dashboard/category" :class="{ active: $route.path.startsWith('/dashboard/category') }">Category</NuxtLink>
           <NuxtLink to="/dashboard/sub-category" :class="{ active: $route.path.startsWith('/dashboard/sub-category') }">Sub Category</NuxtLink>
+          <NuxtLink to="/dashboard/product" :class="{ active: $route.path === '/dashboard/product' || $route.path.startsWith('/dashboard/product/') }">Product</NuxtLink>
         </div>
       </button>
       <button type="button" class="menu-link d-flex flex-column parent-menu" :class="{ active: $route.path.startsWith('/dashboard/product-in') || $route.path.startsWith('/dashboard/product-out') || $route.path.startsWith('/dashboard/product-broken') || $route.path.startsWith('/dashboard/product-return') }" @click="toggleActive($event)">
         <div class="wrapper d-flex align-items-center gap-2">
-          <i class="fa-solid fa-database"></i>
+          <i class="fa-solid fa-truck-ramp-box"></i>
           Inventaris
         </div>
         <div class="child-menu flex-column gap-1">
