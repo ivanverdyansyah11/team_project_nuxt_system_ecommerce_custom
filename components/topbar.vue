@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
 import { useRoute } from 'vue-router'
-import { ref, watch } from 'vue'
-import profileNotFound from '~/assets/image/profile/profile-not-found.svg' // Import the local image
+import { ref, watch, onMounted } from 'vue'
+import profileNotFound from '~/assets/image/profile/profile-not-found.svg'
 
 const route = useRoute();
 const title = ref('')
@@ -32,6 +32,10 @@ watch(
     },
     { immediate: true }
 );
+
+onMounted(async () => {
+  await authStore.checkProfile();
+});
 </script>
 
 <template>
