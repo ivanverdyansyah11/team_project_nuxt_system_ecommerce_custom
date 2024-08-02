@@ -145,7 +145,7 @@ onBeforeRouteUpdate((to, from, next) => {
         <div class="card-default">
           <div class="wrapper d-flex align-items-center justify-content-between gap-2">
             <form class="form w-100">
-              <input type="search" class="input w-100" id="search" placeholder="Search subCategory.."
+              <input type="search" class="input w-100" id="search" placeholder="Search sub category.."
                      autocomplete="off" v-model="keyword" @keyup="search">
             </form>
             <button type="button" class="button-primary-small d-none d-md-inline-block" data-bs-toggle="modal" data-bs-target="#createModal">Add
@@ -330,7 +330,7 @@ onBeforeRouteUpdate((to, from, next) => {
             </button>
           </div>
           <div class="modal-body">
-            <p style="font-size: 0.913rem">Are you sure want to delete this subCategory?</p>
+            <p style="font-size: 0.913rem">Are you sure want to delete this sub category?</p>
           </div>
           <div class="modal-footer">
             <button type="button" class="button-reverse" data-bs-dismiss="modal">Cancel Delete</button>
